@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>⚔️ Clash Pro Analyzer</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: radial-gradient(circle at top, #240046, #000);
+  color: white;
+  text-align: center;
+}
+
+/* عنوان */
+h1 {
+  padding: 20px;
+  text-shadow: 0 0 15px purple;
+}
+
+/* صندوق */
+.box {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  padding: 20px;
+  margin: 20px auto;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 0 25px purple;
+}
+
+/* انبوت */
+input {
+  width: 80%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  margin: 10px;
+  text-align: center;
+}
+
+/* زر */
+button {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(45deg, purple, #7209b7);
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 0 10px purple;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+/* كارد */
+.card {
+  background: #1a1a2e;
+  margin: 10px;
+  padding: 15px;
+  border-radius: 15px;
+  width: 250px;
+  box-shadow: 0 0 15px rgba(128,0,255,0.4);
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+/* لاعب قوي */
+.top {
+  border: 2px solid gold;
+  box-shadow: 0 0 20px gold;
+}
+
+/* قائد */
+.leader {
+  border: 2px solid red;
+}
+
+/* صورة */
+img {
+  width: 80px;
+  margin-bottom: 10px;
+}
+
+/* كونتينر */
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>⚔️ Clash Pro Analyzer</h1>
+
+<div class="box">
+  <input type="text" id="clanTag" placeholder="ID الكلان">
+  <button onclick="getClan()">فحص الكلان</button>
+
+  <input type="text" id="playerTag" placeholder="ID اللاعب">
+  <button onclick="getPlayer()">فحص اللاعب</button>
+</div>
+
+<div id="result" class="container"></div>
+
+<script>
+const API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImE0YzIzYWIxLTkwMGUtNDI0NC04MGJjLWI1ZTdmOTEzNWNlNiIsImlhdCI6MTc3NDQ4NTcxMSwic3ViIjoiZGV2ZWxvcGVyLzY4OTYyZWY0LTIy NDYtZGUzZS0yMDc5LTNmZWE0ZjVlMGNjNCIsInNjb3BlcyI6WyJjbGFzaCJdLCJsaW1pdHMiOlt7InRpZXIiOiJkZXZlbG9wZXIvc2lsdmVyIiwidHlwZSI6InRocm90dGxpbmcifSx7ImNpZHJzIjpbIjAuMC4wLjAiXSwidHlwZSI6ImNsaWVudCJ9XX0.XzSQp7gIWeUsVpFIhUPGAH-rCB32PbmciuhSbMx_zziG99fXZeynNWhb_l82ZDA38521chq_jzcmHKICZ08VBA"; // 
+
+// صور تاون هول
+function getTHImage(level){
+  return `https://coc.guide/static/imgs/th${level}.png`;
+}
+
+// ===== الكلان =====
+async function getClan() {
+  const tag = document.getElementById("clanTag").value;
+
+  const res = await fetch(`https://api.clashofclans.com/v1/clans/%23${tag}`, {
+    headers: {
+      "Authorization": `Bearer ${API_KEY}`
+    }
+  });
+
+  const data = await res.json();
+
+  let members = data.memberList.sort((a,b)=>b.trophies-a.trophies);
+
+  let html = `
+    <div class="card">
+      <h2>🏰 ${data.name}</h2>
+      <p>🏆 ${data.clanPoints}</p>
+      <p>👥 ${data.members} عضو</p>
+    </div>
+  `;
+
+  members.forEach((m,index) => {
+    let extraClass = "";
+    if(index === 0) extraClass = "top";
+    if(m.role === "leader") extraClass += " leader";
+
+    html += `
+      <div class="card ${extraClass}">
+        <img src="${getTHImage(10)}">
+        <h3>${m.name}</h3>
+        <p>🏆 ${m.trophies}</p>
+        <p>${m.role}</p>
+      </div>
+    `;
+  });
+
+  document.getElementById("result").innerHTML = html;
+}
+
+// ===== اللاعب =====
+async function getPlayer() {
+  const tag = document.getElementById("playerTag").value;
+
+  const res = await fetch(`https://api.clashofclans.com/v1/players/%23${tag}`, {
+    headers: {
+      "Authorization": `Bearer ${API_KEY}`
+    }
+  });
+
+  const data = await res.json();
+
+  let html = `
+    <div class="card">
+      <img src="${getTHImage(data.townHallLevel)}">
+      <h2>${data.name}</h2>
+      <p>🏆 ${data.trophies}</p>
+      <p>🏠 TH ${data.townHallLevel}</p>
+      <p>⭐ ${data.expLevel}</p>
+    </div>
+  `;
+
+  document.getElementById("result").innerHTML = html;
+}
+</script>
+
+</body>
+</html>
